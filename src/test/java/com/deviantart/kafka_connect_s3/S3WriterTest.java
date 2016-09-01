@@ -1,35 +1,24 @@
 package com.deviantart.kafka_connect_s3;
 
-import static org.mockito.Mockito.*;
-import org.mockito.ArgumentCaptor;
-
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
-
-import org.apache.kafka.common.TopicPartition;
-
+import com.deviantart.kafka_connect_s3.writers.BlockGZIPFileWriter;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.apache.kafka.common.TopicPartition;
+import org.mockito.ArgumentCaptor;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.lang.StringBuilder;
+import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static org.mockito.Mockito.*;
 
 /**
  * Really basic sanity check testing over the documented use of API.

@@ -1,22 +1,11 @@
-package com.deviantart.kafka_connect_s3;
-
-import java.io.BufferedWriter;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-
-import java.util.ArrayList;
-import java.util.zip.GZIPOutputStream;
+package com.deviantart.kafka_connect_s3.writers;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * BlockGZIPFileWriter accumulates newline delimited UTF-8 records and writes them to an

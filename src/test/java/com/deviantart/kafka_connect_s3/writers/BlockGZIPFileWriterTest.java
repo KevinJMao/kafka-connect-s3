@@ -1,21 +1,14 @@
-package com.deviantart.kafka_connect_s3;
+package com.deviantart.kafka_connect_s3.writers;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
-import java.util.zip.GZIPInputStream;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
+import java.io.*;
+import java.util.zip.GZIPInputStream;
 
 public class BlockGZIPFileWriterTest extends TestCase {
 
