@@ -41,12 +41,12 @@ public class BlockGZIPFileWriterTest extends TestCase {
   }
 
   public void testPaths() throws Exception {
-    BlockGZIPFileWriter w = new BlockGZIPFileWriter("foo", tmpDir);
+    S3FileWriter w = new BlockGZIPFileWriter("foo", tmpDir);
     assertEquals(tmpDir + "/foo-000000000000.gz", w.getDataFilePath());
     assertEquals(tmpDir + "/foo-000000000000.index.json", w.getIndexFilePath());
 
 
-    BlockGZIPFileWriter w2 = new BlockGZIPFileWriter("foo", tmpDir, 123456);
+    S3FileWriter w2 = new BlockGZIPFileWriter("foo", tmpDir, 123456);
     assertEquals(tmpDir + "/foo-000000123456.gz", w2.getDataFilePath());
     assertEquals(tmpDir + "/foo-000000123456.index.json", w2.getIndexFilePath());
   }
@@ -57,7 +57,7 @@ public class BlockGZIPFileWriterTest extends TestCase {
     + "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
     // Make a writer with artificially small chunk threshold of 1kb
-    BlockGZIPFileWriter w = new BlockGZIPFileWriter("write-test", tmpDir, 987654321, 1000);
+    S3FileWriter w = new BlockGZIPFileWriter("write-test", tmpDir, 987654321, 1000);
 
     int totalUncompressedBytes = 0;
     String[] expectedLines = new String[50];
@@ -101,7 +101,7 @@ public class BlockGZIPFileWriterTest extends TestCase {
     }
   }
 
-  private void verifyIndexFile(BlockGZIPFileWriter w, int startOffset, String[] expectedRecords) throws Exception {
+  private void verifyIndexFile(S3FileWriter w, int startOffset, String[] expectedRecords) throws Exception {
     JSONParser parser = new JSONParser();
 
     Object obj = parser.parse(new FileReader(w.getIndexFilePath()));
@@ -164,7 +164,7 @@ public class BlockGZIPFileWriterTest extends TestCase {
   public void testShouldOverwrite() throws Exception {
     // Make writer and write to it a bit.
     {
-      BlockGZIPFileWriter w = new BlockGZIPFileWriter("overwrite-test", tmpDir);
+      S3FileWriter w = new BlockGZIPFileWriter("overwrite-test", tmpDir);
 
       // Write at least a few 4k blocks to disk so we can be sure that we don't
       // only overwrite the first block.
@@ -187,7 +187,7 @@ public class BlockGZIPFileWriterTest extends TestCase {
 
     {
       // Now make a whole new writer for same chunk
-      BlockGZIPFileWriter w = new BlockGZIPFileWriter("overwrite-test", tmpDir);
+      S3FileWriter w = new BlockGZIPFileWriter("overwrite-test", tmpDir);
 
       // Only write a few lines
       String[] expectedLines2 = new String[10];
@@ -209,7 +209,7 @@ public class BlockGZIPFileWriterTest extends TestCase {
 
   public void testDelete() throws Exception {
     // Make writer and write to it a bit.
-    BlockGZIPFileWriter w = new BlockGZIPFileWriter("overwrite-test", tmpDir);
+    S3FileWriter w = new BlockGZIPFileWriter("overwrite-test", tmpDir);
 
     String[] expectedLines = new String[5000];
     for (int i = 0; i < 5000; i++) {

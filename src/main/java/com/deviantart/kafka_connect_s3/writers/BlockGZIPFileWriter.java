@@ -1,5 +1,6 @@
 package com.deviantart.kafka_connect_s3.writers;
 
+import com.deviantart.kafka_connect_s3.S3SinkConnectorConstants;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -24,7 +25,7 @@ import java.util.zip.GZIPOutputStream;
  * Note that thanks to GZIP spec, the overall file is perfectly valid and will compress as if it was a single stream
  * with any regular GZIP decoding library or program.
  */
-public class BlockGZIPFileWriter {
+public class BlockGZIPFileWriter implements S3FileWriter {
   private String filenameBase;
   private String path;
   private GZIPOutputStream gzipStream;
@@ -77,6 +78,11 @@ public class BlockGZIPFileWriter {
   // record offsets in the index to reflect the global offset rather than local
   private long firstRecordOffset;
 
+  static {
+    S3FileWriterFactory.getInstance().registerWriter(S3SinkConnectorConstants.S3_OUTPUT_WRITER_BLOCK_GZIP,
+            BlockGZIPFileWriter.class);
+  }
+
   public BlockGZIPFileWriter(String filenameBase, String path) throws FileNotFoundException, IOException {
     this(filenameBase, path, 0, 67108864);
   }
@@ -120,22 +126,27 @@ public class BlockGZIPFileWriter {
     return chunks.get(chunks.size() - 1);
   }
 
+  @Override
   public long getFirstRecordOffset() {
     return firstRecordOffset;
   }
 
+  @Override
   public String getDataFileName() {
     return String.format("%s-%012d.gz", filenameBase, firstRecordOffset);
   }
 
+  @Override
   public String getIndexFileName() {
     return String.format("%s-%012d.index.json", filenameBase, firstRecordOffset);
   }
 
+  @Override
   public String getDataFilePath() {
     return String.format("%s/%s", path, this.getDataFileName());
   }
 
+  @Override
   public String getIndexFilePath() {
     return String.format("%s/%s", path, this.getIndexFileName());
   }
@@ -145,6 +156,7 @@ public class BlockGZIPFileWriter {
    *
    * If there is no newline at then end we will add one
    */
+  @Override
   public void write(String record) throws IOException {
     Chunk ch = currentChunk();
 
@@ -174,6 +186,7 @@ public class BlockGZIPFileWriter {
     ch.numRecords++;
   }
 
+  @Override
   public void delete() throws IOException {
     deleteIfExists(getDataFilePath());
     deleteIfExists(getIndexFilePath());
@@ -198,6 +211,7 @@ public class BlockGZIPFileWriter {
     ch.compressedByteLength = bytesWritten - ch.byteOffset;
   }
 
+  @Override
   public void close() throws IOException {
     // Flush last chunk, updating index
     finishChunk();
@@ -228,6 +242,7 @@ public class BlockGZIPFileWriter {
     }
   }
 
+  @Override
   public int getTotalUncompressedSize() {
     int totalBytes = 0;
     for (Chunk ch : chunks) {
@@ -236,10 +251,12 @@ public class BlockGZIPFileWriter {
     return totalBytes;
   }
 
+  @Override
   public int getNumChunks() {
     return chunks.size();
   }
 
+  @Override
   public int getNumRecords() {
     int totalRecords = 0;
     for (Chunk ch : chunks) {

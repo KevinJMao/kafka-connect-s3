@@ -10,4 +10,8 @@ public class S3SinkConnectorConstants {
   public static final String LOCAL_BUFFER_DIR_CONFIG = "local.buffer.dir";
   public static final String S3_ENABLE_SSE_CONFIG = "s3.enableSse";
   public static final String S3_KMS_KEY_ID_CONFIG = "s3.kmsKeyId";
+
+  public static final String S3_OUTPUT_WRITER = "s3.outputWriter";
+  public static final String S3_OUTPUT_WRITER_BLOCK_GZIP = "com.deviantart.kafka_connect_s3.writers.BlockGZIPFileWriter";
+  public static final String S3_OUTPUT_WRITER_PLAINTEXT = "com.deviantart.kafka_connect_s3.writer.PlaintextFileWriter";
 }
