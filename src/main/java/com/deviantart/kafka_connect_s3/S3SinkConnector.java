@@ -26,7 +26,6 @@ public class S3SinkConnector extends Connector {
     configProperties = props;
     try {
       Class.forName(S3SinkConnectorConstants.S3_OUTPUT_WRITER_BLOCK_GZIP);
-      Class.forName(S3SinkConnectorConstants.S3_OUTPUT_WRITER_PLAINTEXT);
     } catch (ClassNotFoundException ex) {
       throw new ConnectException("Error occurred when registering output writer classes: " + ex.getMessage());
     }
