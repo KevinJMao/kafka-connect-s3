@@ -3,6 +3,8 @@ package com.deviantart.kafka_connect_s3.writers;
 import com.deviantart.kafka_connect_s3.S3SinkConnectorConstants;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -26,48 +28,13 @@ import java.util.zip.GZIPOutputStream;
  * with any regular GZIP decoding library or program.
  */
 public class BlockGZIPFileWriter implements S3FileWriter {
+
+  private static final Logger log = LoggerFactory.getLogger(BlockGZIPFileWriter.class);
   private String filenameBase;
   private String path;
   private GZIPOutputStream gzipStream;
   private BufferedWriter writer;
   private CountingOutputStream fileStream;
-
-  private class Chunk {
-    public long rawBytes = 0;
-    public long byteOffset = 0;
-    public long compressedByteLength = 0;
-    public long firstOffset = 0;
-    public long numRecords = 0;
-  };
-
-  private class CountingOutputStream extends FilterOutputStream {
-    private long numBytes = 0;
-
-    CountingOutputStream(OutputStream out) throws IOException {
-      super(out);
-    }
-
-    @Override
-    public void write(int b) throws IOException {
-      out.write(b);
-      numBytes++;
-    }
-    @Override
-    public void write(byte[] b) throws IOException {
-      out.write(b);
-      numBytes += b.length;
-    }
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-      out.write(b, off, len);
-      numBytes += len;
-    }
-
-    public long getNumBytesWritten() {
-      return numBytes;
-    }
-  };
-
   private ArrayList<Chunk> chunks;
 
   // Default each chunk is 64MB of uncompressed data
@@ -94,6 +61,7 @@ public class BlockGZIPFileWriter implements S3FileWriter {
   public BlockGZIPFileWriter(String filenameBase, String path, long firstRecordOffset, long chunkThreshold)
   throws FileNotFoundException, IOException
   {
+    log.info("Initializing BlockGZIPFileWriter");
     this.filenameBase = filenameBase;
     this.path = path;
     this.firstRecordOffset = firstRecordOffset;
@@ -173,7 +141,7 @@ public class BlockGZIPFileWriter implements S3FileWriter {
 
       Chunk newCh = new Chunk();
       newCh.firstOffset = ch.firstOffset + ch.numRecords;
-      newCh.byteOffset = ch.byteOffset + ch.compressedByteLength;
+      newCh.byteOffset = ch.byteOffset + ch.byteLength;
       chunks.add(newCh);
       ch = newCh;
     }
@@ -208,7 +176,7 @@ public class BlockGZIPFileWriter implements S3FileWriter {
 
     // We can no find out how long this chunk was compressed
     long bytesWritten = fileStream.getNumBytesWritten();
-    ch.compressedByteLength = bytesWritten - ch.byteOffset;
+    ch.byteLength = bytesWritten - ch.byteOffset;
   }
 
   @Override
@@ -228,7 +196,7 @@ public class BlockGZIPFileWriter implements S3FileWriter {
       chunkObj.put("first_record_offset", ch.firstOffset);
       chunkObj.put("num_records", ch.numRecords);
       chunkObj.put("byte_offset", ch.byteOffset);
-      chunkObj.put("byte_length", ch.compressedByteLength);
+      chunkObj.put("byte_length", ch.byteLength);
       chunkObj.put("byte_length_uncompressed", ch.rawBytes);
       chunkArr.add(chunkObj);
     }

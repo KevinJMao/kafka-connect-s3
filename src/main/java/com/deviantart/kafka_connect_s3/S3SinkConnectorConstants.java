@@ -13,5 +13,5 @@ public class S3SinkConnectorConstants {
 
   public static final String S3_OUTPUT_WRITER = "s3.outputWriter";
   public static final String S3_OUTPUT_WRITER_BLOCK_GZIP = "com.deviantart.kafka_connect_s3.writers.BlockGZIPFileWriter";
-  public static final String S3_OUTPUT_WRITER_PLAINTEXT = "com.deviantart.kafka_connect_s3.writer.PlaintextFileWriter";
+  public static final String S3_OUTPUT_WRITER_PLAINTEXT = "com.deviantart.kafka_connect_s3.writers.PlaintextFileWriter";
 }
