@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -30,6 +31,7 @@ public class S3WriterTest extends TestCase {
   private String testBucket = "kafka-connect-s3-unit-test";
   private String tmpDirPrefix = "S3WriterTest";
   private String tmpDir;
+  private HashMap<String, String> tmpConfig = new HashMap<>();
 
   public S3WriterTest(String testName) {
     super(testName);
@@ -75,17 +77,15 @@ public class S3WriterTest extends TestCase {
   }
 
   private void verifyTMUpload(TransferManager mock, ExpectedRequestParams[] expect) {
-    ArgumentCaptor<String> bucketCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-    verify(mock, times(expect.length)).upload(bucketCaptor.capture(), keyCaptor.capture()
-      ,any(File.class));
+    ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(mock, times(expect.length)).upload(requestCaptor.capture());
 
-    List<String> bucketArgs = bucketCaptor.getAllValues();
-    List<String> keyArgs = keyCaptor.getAllValues();
+    List<PutObjectRequest> requestArgs = requestCaptor.getAllValues();
 
     for (int i = 0 ; i < expect.length; i++) {
-      assertEquals(expect[i].bucket, bucketArgs.remove(0));
-      assertEquals(expect[i].key, keyArgs.remove(0));
+      assertEquals(expect[i].bucket, requestArgs.get(0).getBucketName());
+      assertEquals(expect[i].key, requestArgs.get(0).getKey());
+      requestArgs.remove(0);
     }
   }
 
@@ -121,8 +121,10 @@ public class S3WriterTest extends TestCase {
   public void testUpload() throws Exception {
     AmazonS3 s3Mock = mock(AmazonS3.class);
     TransferManager tmMock = mock(TransferManager.class);
+    Upload uploadMock = mock(Upload.class);
+    when(tmMock.upload(any(PutObjectRequest.class))).thenReturn(uploadMock);
     BlockGZIPFileWriter fileWriter = createDummmyFiles(0, 1000);
-    S3Writer s3Writer = new S3Writer(testBucket, "pfx", s3Mock, tmMock);
+    S3Writer s3Writer = new S3Writer(testBucket, "pfx", s3Mock, tmMock, tmpConfig);
     TopicPartition tp = new TopicPartition("bar", 0);
 
     Upload mockUpload = mock(Upload.class);
@@ -156,7 +158,7 @@ public class S3WriterTest extends TestCase {
 
   public void testFetchOffsetNewTopic() throws Exception {
     AmazonS3 s3Mock = mock(AmazonS3.class);
-    S3Writer s3Writer = new S3Writer(testBucket, "pfx", s3Mock);
+    S3Writer s3Writer = new S3Writer(testBucket, "pfx", s3Mock, tmpConfig);
 
     // Non existing topic should return 0 offset
     // Since the file won't exist. code will expect the initial fetch to 404
@@ -174,7 +176,7 @@ public class S3WriterTest extends TestCase {
 
   public void testFetchOffsetExistingTopic() throws Exception {
     AmazonS3 s3Mock = mock(AmazonS3.class);
-    S3Writer s3Writer = new S3Writer(testBucket, "pfx", s3Mock);
+    S3Writer s3Writer = new S3Writer(testBucket, "pfx", s3Mock, tmpConfig);
     // Existing topic should return correct offset
     // We expect 2 fetches, one for the cursor file
     // and second for the index file itself
